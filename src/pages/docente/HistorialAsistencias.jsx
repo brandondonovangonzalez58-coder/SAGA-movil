@@ -106,8 +106,11 @@ export default function HistorialAsistencias() {
                         <View style={styles.avatar}>
                           <User size={14} color="#3b82f6" />
                         </View>
+                        {/* 🚨 AQUÍ ESTÁ EL CAMBIO: Usamos el nombre del estudiante */}
                         <Text style={{ color: 'white', fontSize: 15 }}>
-                          Alumno ID: {asistencia.id_estudiante}
+                          {asistencia.estudiante?.usuario 
+                            ? `${asistencia.estudiante.usuario.nombre} ${asistencia.estudiante.usuario.apellidos}` 
+                            : `Alumno ID: ${asistencia.id_estudiante}`}
                         </Text>
                       </View>
                       
@@ -138,13 +141,12 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: 'bold', color: 'white' },
   subtitle: { fontSize: 14, color: '#a3a3a3', marginBottom: 25, marginTop: 5 },
   
-  // Estilos de la Tarjeta
   card: { 
     backgroundColor: 'rgba(255,255,255,0.03)', 
     borderRadius: 20, 
     borderWidth: 1, 
     borderColor: 'rgba(255,255,255,0.08)', 
-    marginBottom: 20, // Separación entre tarjetas
+    marginBottom: 20,
     overflow: 'hidden' 
   },
   cardHeader: { 
@@ -153,7 +155,6 @@ const styles = StyleSheet.create({
     alignItems: 'center' 
   },
   
-  // Icono izquierdo
   iconBox: { 
     width: 45, height: 45, 
     borderRadius: 12, 
@@ -161,13 +162,11 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center' 
   },
   
-  // Textos
   sesionTema: { color: 'white', fontSize: 17, fontWeight: 'bold', marginBottom: 6 },
   infoRow: { flexDirection: 'row', gap: 15 },
   infoItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   sesionDetail: { color: '#a3a3a3', fontSize: 13 },
   
-  // Flecha
   chevronBox: { 
     width: 35, height: 35, 
     borderRadius: 10, 
@@ -175,7 +174,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center' 
   },
   
-  // Cuerpo desplegable
   cardBody: { 
     padding: 20, 
     backgroundColor: 'rgba(0,0,0,0.3)', 
@@ -184,7 +182,6 @@ const styles = StyleSheet.create({
   },
   detailTitle: { color: '#a3a3a3', fontSize: 13, fontWeight: 'bold', marginBottom: 15, textTransform: 'uppercase' },
   
-  // Filas de alumnos
   asistenciaRow: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
@@ -201,7 +198,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center' 
   },
   
-  // Badges
   badge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 15 },
   badgePresente: { backgroundColor: 'rgba(16,185,129,0.15)' },
   badgeFalta: { backgroundColor: 'rgba(239,68,68,0.15)' },
