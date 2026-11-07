@@ -40,10 +40,13 @@ export default function HistorialAsistencias() {
 
   return (
     <View style={styles.container}>
+      {/* Fondo con el mismo gradiente del Login */}
+      <View style={styles.backgroundGlow} />
+
       <ScrollView contentContainerStyle={styles.content}>
         
         <Text style={styles.title}>Historial de Clases</Text>
-        <Text style={styles.subtitle}>Toca una tarjeta para ver los detalles y la lista de alumnos.</Text>
+        <Text style={styles.subtitle}>Toca una tarjeta para ver los detalles.</Text>
 
         {loading && <ActivityIndicator color="#3b82f6" size="large" style={{ marginTop: 30 }} />}
 
@@ -53,11 +56,9 @@ export default function HistorialAsistencias() {
           </Text>
         )}
 
-        {/* TARJETAS CON MÁS ESPACIO */}
         {!loading && sesiones.map((sesion) => (
           <View key={sesion.id_sesion} style={styles.card}>
             
-            {/* Cabecera de la Tarjeta */}
             <TouchableOpacity onPress={() => verDetalle(sesion)} style={styles.cardHeader} activeOpacity={0.7}>
               <View style={styles.iconBox}>
                 <BookOpen color="#3b82f6" size={24} />
@@ -90,7 +91,6 @@ export default function HistorialAsistencias() {
               </View>
             </TouchableOpacity>
 
-            {/* Detalle de la sesión (Lista de alumnos) */}
             {sesionAbierta?.id_sesion === sesion.id_sesion && (
               <View style={styles.cardBody}>
                 <Text style={styles.detailTitle}>Alumnos Evaluados</Text>
@@ -106,7 +106,6 @@ export default function HistorialAsistencias() {
                         <View style={styles.avatar}>
                           <User size={14} color="#3b82f6" />
                         </View>
-                        {/* 🚨 AQUÍ ESTÁ EL CAMBIO: Usamos el nombre del estudiante */}
                         <Text style={{ color: 'white', fontSize: 15 }}>
                           {asistencia.estudiante?.usuario 
                             ? `${asistencia.estudiante.usuario.nombre} ${asistencia.estudiante.usuario.apellidos}` 
@@ -136,16 +135,27 @@ export default function HistorialAsistencias() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#020202' },
+  backgroundGlow: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: '#3b82f6',
+    opacity: 0.15,
+  },
   content: { padding: 20, paddingTop: 60, paddingBottom: 40 },
   
   title: { fontSize: 28, fontWeight: 'bold', color: 'white' },
   subtitle: { fontSize: 14, color: '#a3a3a3', marginBottom: 25, marginTop: 5 },
   
+  // Tarjeta principal (Cristal)
   card: { 
     backgroundColor: 'rgba(255,255,255,0.03)', 
     borderRadius: 20, 
     borderWidth: 1, 
-    borderColor: 'rgba(255,255,255,0.08)', 
+    borderColor: 'rgba(255,255,255,0.1)', 
     marginBottom: 20,
     overflow: 'hidden' 
   },
@@ -176,7 +186,7 @@ const styles = StyleSheet.create({
   
   cardBody: { 
     padding: 20, 
-    backgroundColor: 'rgba(0,0,0,0.3)', 
+    backgroundColor: 'rgba(0,0,0,0.2)', 
     borderTopWidth: 1, 
     borderTopColor: 'rgba(255,255,255,0.05)' 
   },

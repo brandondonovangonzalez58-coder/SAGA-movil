@@ -1,6 +1,5 @@
-//principal del docente
-import PasarLista from '../../pages/docente/PasarLista';
+import DocenteDashboard from '../../pages/docente/DocenteDashboard';
 
 export default function DocenteRoute() {
-  return <PasarLista />;
+  return <DocenteDashboard />;
 }

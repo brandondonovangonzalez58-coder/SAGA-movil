@@ -1,39 +1,30 @@
 // Vista para pasar lista y guardar bitácora
-import { useRouter } from 'expo-router';
-import { AlertCircle, BookOpen, Calendar, CheckCircle, ChevronDown, Clock, Clock3, GraduationCap, History, Users, XCircle } from 'lucide-react-native';
+import { AlertCircle, BookOpen, Calendar, CheckCircle, ChevronDown, Clock, Clock3, GraduationCap, Users, XCircle } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import api from '../../api/axios';
 import { useAuthStore } from '../../store/authStore';
 
 export default function PasarLista() {
-  const router = useRouter();
   const usuario = useAuthStore((s) => s.usuario);
 
-  // Estados para los filtros
+  // Estados
   const [carreras, setCarreras] = useState([]);
   const [grupos, setGrupos] = useState([]);
   const [alumnos, setAlumnos] = useState([]);
-
   const [carreraSeleccionada, setCarreraSeleccionada] = useState(null);
   const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
-
-  // Estados de UI
   const [loading, setLoading] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(null);
-
-  // Estados de la Bitácora
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [horaInicio, setHoraInicio] = useState('08:00');
   const [horaFin, setHoraFin] = useState('09:00');
   const [tema, setTema] = useState('');
 
-  // 1. Cargar carreras
   useEffect(() => {
     api.get('/carreras/').then(res => setCarreras(res.data)).catch(console.log);
   }, []);
 
-  // 2. Al elegir una carrera, cargamos sus grupos
   const seleccionarCarrera = async (carrera) => {
     setCarreraSeleccionada(carrera);
     setGrupoSeleccionado(null);
@@ -50,7 +41,6 @@ export default function PasarLista() {
     }
   };
 
-  // 3. Al elegir un grupo, cargamos a sus alumnos (Inician en "Pendiente")
   const seleccionarGrupo = async (grupo) => {
     setGrupoSeleccionado(grupo);
     setMenuAbierto(null);
@@ -64,7 +54,8 @@ export default function PasarLista() {
         const alumnosFormateados = res.data.map(a => ({
           id_estudiante: a.id_estudiante,
           nombre: a.usuario ? `${a.usuario.nombre} ${a.usuario.apellidos}` : `Alumno ${a.id_usuario}`, 
-          estado: 'Pendiente' // <-- Inician pendientes
+          matricula: a.usuario?.matricula || 'Sin matrícula',
+          estado: 'Pendiente'
         }));
         setAlumnos(alumnosFormateados);
       }
@@ -79,26 +70,22 @@ export default function PasarLista() {
     setAlumnos(alumnos.map(a => a.id_estudiante === id ? { ...a, estado: nuevoEstado } : a));
   };
 
-  // 4. Guardar la bitácora y asistencias
   const guardarAsistencia = async () => {
     if (!tema) {
       Alert.alert("Falta el tema", "Escribe el tema de la clase para guardar la bitácora.");
       return;
     }
-
     setLoading(true);
     try {
       const resSesion = await api.post('/sesiones/', {
-        id_grupo_materia: 1, // Recuerda que aquí iría el ID real
+        id_grupo_materia: 1,
         fecha: fecha,
         hora_inicio: horaInicio + ":00",
         hora_fin: horaFin + ":00",
         tema: tema,
         estado: "Cerrada"
       });
-
       const idSesionCreada = resSesion.data.id_sesion;
-
       for (const alumno of alumnos) {
         await api.post('/asistencias/', {
           id_sesion: idSesionCreada,
@@ -108,17 +95,14 @@ export default function PasarLista() {
           registrado_por: usuario.id_usuario || 1
         });
       }
-
       Alert.alert("¡Éxito!", "La bitácora de asistencia se guardó correctamente.");
     } catch (error) {
-      console.error(error);
       Alert.alert("Error", "No se pudo guardar. Revisa los datos.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Función para darle color a cada botón según su estado
   const getBotonStyle = (estadoBoton, estadoAlumno) => {
     if (estadoBoton !== estadoAlumno) return styles.btnInactivo;
     switch (estadoBoton) {
@@ -132,14 +116,11 @@ export default function PasarLista() {
 
   return (
     <View style={styles.container}>
+      {/* Fondo con el mismo gradiente del Login */}
+      <View style={styles.backgroundGlow} />
+
       <ScrollView contentContainerStyle={styles.content}>
         
-        {/* BOTÓN HISTORIAL */}
-        <TouchableOpacity onPress={() => router.push('/docente/historial')} style={styles.historyBtn}>
-          <History color="#3b82f6" size={20} />
-          <Text style={styles.historyText}>Ver Historial</Text>
-        </TouchableOpacity>
-
         <Text style={styles.title}>Pasar Lista</Text>
         <Text style={styles.subtitle}>Selecciona la clase y guarda la bitácora.</Text>
 
@@ -198,22 +179,22 @@ export default function PasarLista() {
             <View style={styles.bitacoraCard}>
               <Text style={styles.bitacoraTitle}>Bitácora de la Clase</Text>
               <View style={styles.inputRow}>
-                <Calendar color="#f59e0b" size={18} />
-                <TextInput style={styles.textInput} value={fecha} onChangeText={setFecha} placeholder="YYYY-MM-DD" />
+                <Calendar color="#3b82f6" size={18} />
+                <TextInput style={styles.textInput} value={fecha} onChangeText={setFecha} placeholder="YYYY-MM-DD" placeholderTextColor="#737373" />
               </View>
               <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
                 <View style={[styles.inputRow, { flex: 1 }]}>
-                  <Clock color="#f59e0b" size={18} />
-                  <TextInput style={styles.textInput} value={horaInicio} onChangeText={setHoraInicio} placeholder="08:00" />
+                  <Clock color="#3b82f6" size={18} />
+                  <TextInput style={styles.textInput} value={horaInicio} onChangeText={setHoraInicio} placeholder="08:00" placeholderTextColor="#737373" />
                 </View>
                 <View style={[styles.inputRow, { flex: 1 }]}>
-                  <Clock color="#f59e0b" size={18} />
-                  <TextInput style={styles.textInput} value={horaFin} onChangeText={setHoraFin} placeholder="09:00" />
+                  <Clock color="#3b82f6" size={18} />
+                  <TextInput style={styles.textInput} value={horaFin} onChangeText={setHoraFin} placeholder="09:00" placeholderTextColor="#737373" />
                 </View>
               </View>
               <View style={[styles.inputRow, { marginTop: 10 }]}>
-                <BookOpen color="#f59e0b" size={18} />
-                <TextInput style={styles.textInput} value={tema} onChangeText={setTema} placeholder="Tema de la clase" />
+                <BookOpen color="#3b82f6" size={18} />
+                <TextInput style={styles.textInput} value={tema} onChangeText={setTema} placeholder="Tema de la clase" placeholderTextColor="#737373" />
               </View>
             </View>
 
@@ -225,8 +206,10 @@ export default function PasarLista() {
             {alumnos.map((alumno) => (
               <View key={alumno.id_estudiante} style={styles.card}>
                 <Text style={styles.alumnoNombre}>{alumno.nombre}</Text>
+                <Text style={{ color: '#a3a3a3', fontSize: 13, marginBottom: 12 }}>
+                  Matrícula: {alumno.matricula}
+                </Text>
                 
-                {/* Cuadrícula de 4 botones */}
                 <View style={styles.gridRow}>
                   <TouchableOpacity 
                     onPress={() => cambiarEstado(alumno.id_estudiante, 'Presente')}
@@ -277,24 +260,72 @@ export default function PasarLista() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#020202' },
+  backgroundGlow: {
+    position: 'absolute',
+    top: -50,
+    left: -50,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: '#3b82f6',
+    opacity: 0.15,
+  },
   content: { padding: 20, paddingTop: 60, paddingBottom: 40 },
-  historyBtn: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginBottom: 15 },
-  historyText: { color: '#3b82f6', fontWeight: 'bold', fontSize: 14 },
   title: { fontSize: 28, fontWeight: 'bold', color: 'white' },
   subtitle: { fontSize: 14, color: '#a3a3a3', marginBottom: 20 },
   stepLabel: { color: '#a3a3a3', fontSize: 12, fontWeight: 'bold', marginBottom: 8, textTransform: 'uppercase' },
-  selector: { backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 15, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dropdown: { backgroundColor: '#111827', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 15, marginTop: 5, overflow: 'hidden' },
+  
+  selector: { 
+    backgroundColor: 'rgba(255,255,255,0.03)', 
+    borderWidth: 1, 
+    borderColor: 'rgba(255,255,255,0.1)', 
+    borderRadius: 15, 
+    padding: 16, 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center' 
+  },
+  dropdown: { 
+    backgroundColor: '#0a1420', 
+    borderWidth: 1, 
+    borderColor: 'rgba(255,255,255,0.1)', 
+    borderRadius: 15, 
+    marginTop: 5, 
+    overflow: 'hidden' 
+  },
   dropdownItem: { padding: 15, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
-  bitacoraCard: { backgroundColor: 'rgba(245, 158, 11, 0.05)', borderWidth: 1, borderColor: 'rgba(245, 158, 11, 0.2)', borderRadius: 16, padding: 15, marginBottom: 20 },
-  bitacoraTitle: { color: '#f59e0b', fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8 },
+
+  bitacoraCard: { 
+    backgroundColor: 'rgba(255,255,255,0.03)', 
+    borderWidth: 1, 
+    borderColor: 'rgba(255,255,255,0.1)', 
+    borderRadius: 20, 
+    padding: 20, 
+    marginBottom: 20 
+  },
+  bitacoraTitle: { color: 'white', fontSize: 16, fontWeight: 'bold', marginBottom: 15 },
+  inputRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(255,255,255,0.05)', 
+    borderRadius: 10, 
+    paddingHorizontal: 10, 
+    paddingVertical: 10 
+  },
   textInput: { flex: 1, color: 'white', marginLeft: 10, fontSize: 14 },
+
   headerList: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 15 },
   headerListText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
   
-  card: { backgroundColor: 'rgba(255,255,255,0.03)', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 15 },
-  alumnoNombre: { color: 'white', fontSize: 16, fontWeight: '600', marginBottom: 12 },
+  card: { 
+    backgroundColor: 'rgba(255,255,255,0.03)', 
+    padding: 16, 
+    borderRadius: 20, 
+    borderWidth: 1, 
+    borderColor: 'rgba(255,255,255,0.1)', 
+    marginBottom: 15 
+  },
+  alumnoNombre: { color: 'white', fontSize: 16, fontWeight: '600', marginBottom: 4 },
   
   gridRow: { flexDirection: 'row', gap: 10, marginBottom: 8 },
   gridBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, gap: 6 },
@@ -306,6 +337,17 @@ const styles = StyleSheet.create({
   btnPendiente: { backgroundColor: '#6b7280' },
   btnInactivo: { backgroundColor: 'rgba(255,255,255,0.05)' },
 
-  saveButton: { backgroundColor: '#3b82f6', paddingVertical: 18, borderRadius: 16, alignItems: 'center', marginTop: 20 },
+  saveButton: { 
+    backgroundColor: '#3b82f6', 
+    paddingVertical: 18, 
+    borderRadius: 15, 
+    alignItems: 'center', 
+    marginTop: 20,
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8
+  },
   saveButtonText: { color: 'white', fontSize: 18, fontWeight: 'bold' }
 });
